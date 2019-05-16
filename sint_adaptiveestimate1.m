@@ -1,110 +1,57 @@
 % double integrator dynamics with the adaptive coverage controller
 
-function [dydt] = sint_uniformspread(t,y,K)
+function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly)
 
 	t  % print the current time
 	dydt = zeros(size(y));
 	% constants
-	N = K(1);
-	%k2 = K(2);
-	%b = K(3);
+	na = K(1);  % no.of agents
+	k1 = K(2);  % controller gain
+	np = K(3);  % no.of parameters
+	sigma = K(4);
+	gamma = K(5);
 
-	k = K(2); % no. of agents
+	n = 2;  % ambient dimension
 
 	% actual state of the agents
 	p = zeros(n,na);
+	lambda = zeros(np,na);
+        ahat = zeros(np,na);
+        nn = ((np*np - np)/2) + np;
 
-	n = 2;  % ambient dimension
 	for i=1:na
 		p(:,i) = y(((i-1)*n)+1:i*n);
+
+		s = n*na;
+		Lambda{i} = zeros(np,np);
+		Lambdavec = y(s+((i-1)*nn)+1:s+(i*nn));
+		Lambda{i} = vec2sm(Lambdavec,np);
+
+		s = s + nn*na;
+		lambda(:,i) = y(s+((i-1)*np)+1:s+(i*np));
+
+		s = s + np*na;
+		ahat(:,i) = y(s+((i-1)*np)+1:s+(i*np));
 	end
 
 	% sensory density function measurements of the agents
 	phim = zeros(1,na);
 	for i=1:na
-		phim(i) = phifcn(p(1,i),p(2,i),atrue,np);
+		%phim(i) = phifcn(p(1,i),p(2,i),atrue,np);
+		phim(i) = fieldvalue(p(1,i),p(2,i));
 	end
 
-	%disp('Voronoi function called');
-	%disp(vx);
-	%disp(vy);
-        for i=1:n
-                for j=1:na
-                        if(isnan(p(i,j)) | isinf(p(i,j)))
-                                disp('Position NaN or Inf..');
-                                disp(i);
-                                disp(j);
-                        end
-                end
-                if(max(p(i,:))>2.0 | min(p(i,:))<-1.0)
-                %if(max(p(i,:))>1.0 | min(p(i,:))<0)
-                        disp('Position bound exceeded..');
-                        %disp(p(i,:));
-                	b1 = p(i,:) > 2;
-                	b2 = p(i,:) < -1;
-                	p(i,b1) = 1.99;
-                	p(i,b2) = -0.99;
-                	%b1 = p(i,:) > 1;
-                	%b2 = p(i,:) < 0;
-                	%p(i,b1) = 0.999;
-                	%p(i,b2) = 0.001;
-                end
-        end
-
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%%%%%%% DETERMINE THE PROPER VERTICES W.R.T SQUARE DOMAIN %%%%%%%%
-	%%%% VoronoiLimit is an external function obtained from the %%%%%%
-	%%%% internet. See the function m-file for more details. %%%%%%%%%
-	%%%% The matlab built-in commands 'voronoi' and 'voronoin' %%%%%%%
-	%%%% was not sufficient.                      		 %%%%%%%%%
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	s = [0 0; 0 1; 1 1; 1 0; 0 0];  % bounding surface - unit square
-	%s = [-1 -1; -1 2; 2 2; 2 -1];  % bounding surface - unit square
-	%[V,C] = VoronoiLimit(p(1,:)',p(2,:)',s);
-	%[vornb,vorvx]=polybnd_voronoi(p',s);
-	[Vr,C] = MyVoronoiLimit(p(1,:)',p(2,:)',s);
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	% compute Lvi, Mvi and Cvi based on current parameter estimates
-	Mvi = zeros(1,na);
-	Lvi = zeros(n,na);
-	Lvi1 = zeros(1,na);
-	Lvi2 = zeros(1,na);
-	Cvi = zeros(n,na);
-	parfor i=1:na
-		% get the voronoi partition of i'th agent - vertices
-		vorPar = Vr(C{i},:);
-		%vorPar = unique(vorvx{i},'rows');
-		% x-coordinates of voronoi partition vertices
-		% last element repeated, hence excluding it
-		vx = vorPar(:,1);
-		% y-coordinates of voronoi partition vertices
-		% last element repeated, hence excluding it
-		vy = vorPar(:,2);
-		% Compute Mvi
-		Mvi(i) = polygonint(@lambdafcn,vx,vy,atrue,p(:,i),gm,1e-4);
-		% Compute Lvi.. component-wise integration..
-		%Lvi(1,i) = polygonint(@qphifcn,vx,vy,ahat(:,i),1,1e-6);
-		Lvi1(i) = polygonint(@qlambdafcn,vx,vy,atrue,p(:,i),[gm;1],1e-4);
-		%Lvi(2,i) = polygonint(@qphifcn,vx,vy,ahat(:,i),2,1e-6);
-		Lvi2(i) = polygonint(@qlambdafcn,vx,vy,atrue,p(:,i),[gm;2],1e-4);
-		% Compute Cvi
-		%Cvi(:,i) = Lvi(:,i)/Mvi(i);
-		%Cvi(:,i)
-	%end
-	%Lvi = [Lvi1; Lvi2];
-	Lvi(:,i) = [Lvi1(i); Lvi2(i)];
-	%for i=1:na
-		Cvi(:,i) = Lvi(:,i)/Mvi(i);
-	end
-
-	% control law
+%% control law
 	%u = zeros(n,na);
 	u = zeros(n,na);
+	gl = [glx; gly];
 	for i=1:na
-		%u(:,i) = B{i}\(-k1*Mvi(i)*S{i}(1:2,:)'*(p(:,i)-Cvi(:,i)) - k2*v(:,i));
-		%Bu(:,i) = -k1*Mvi(i)*S{i}(1:2,:)'*(p(:,i)-Cvi(:,i)) - k2*v(:,i);
-		u(:,i) = -k1*Mvi(i)*(p(:,i)-Cvi(:,i));
+		u(:,i) = -k1*(p(:,i)-gl);
+	end
+
+	bi = zeros(np,na);
+	ahatdot = zeros(np,na);
+	for i=1:na
 	end
 
 	% derivative updates
