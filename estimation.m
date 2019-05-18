@@ -21,7 +21,7 @@ for i=1:length(ycb)
 end
 sigma = 0.03;  % std. deviation of RBFs
 
-p = length(xc);  % no.of parameters
+np = length(xc);  % no.of parameters
 
 k = 1; % controller gain
 
@@ -61,17 +61,132 @@ for i=1:N
 	end
 end
 
-a0 = ones(N*p,1);
+%% First algorithm
+
+a0 = ones(N*np,1);
 gamma = 1;
 
-nn = ((p*p - p)/2) + p;
-gamma0 = zeros(nn*N,1);
-lambda0 = zeros(N*p,1);
+nn = ((np*np - np)/2) + np;
+Lambda0 = zeros(nn*N,1);
+lambda0 = zeros(N*np,1);
 
-y0 = [posout; gamma0; lambda0; a0];
+y0 = [posout; Lambda0; lambda0; a0];
 tspan = [0 1];
-K = [N; k; p; sigma; gamma];
-cx = xc(1);
-cy = yc(1);
-[tout, yout] = ode45(@(t,y) sint_adaptiveestimate1(t,y,K,cx,cy),tspan,y0,options);
-%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
+k2 = 1;
+K = [N; k; np; sigma; gamma; k2];
+
+K = zeros(np,np);
+for i=1:np
+	for j=1:i
+		K(i,j) = Kvalue(xc(i),yc(i),xc(j),yc(j),sigma);
+		K(j,i) = K(i,j);
+	end
+end
+
+flag = 1;
+cntr_centre = ones(N,1);
+c = 0
+cx = zeros(N,1);
+cy = zeros(N,1);
+for i=1:N
+	c = ind{i}(cntr_centre(i));
+	cx(i) = xc(c);
+	cy(i) = yc(c);
+end
+e = 0.01;
+while(flag!=0)
+
+	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate1(t,y,K,cx,cy),tspan,y0,options);
+	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
+	y0 = yout(end,:)';
+	f = 0;
+	for i=1:N
+		pi = y0(((i-1)*n)+1:i*n);
+		chi = K\(Kvector(pi(1),pi(2),xc,yc,sigma));
+		tmp = 0;
+		for j=1:np
+			if(j!=c)
+				tmp = tmp + chi(j);
+			end
+		end
+		if((chi(c)-tmp) > e)
+			if(cntr_centre(i)<length(ind{i}))
+				cntr_centre(i) = cntr_centre(i) + 1;
+				c = ind{i}(cntr_centre(i));
+				cx(i) = xc(c);
+				cy(i) = yc(c);
+			else
+				f = f + 1;
+			end
+		end
+
+		if(f==N)
+			flag = 0;
+		end
+	end
+
+	tspan = [tspan(2) tspan(2)+1];
+end
+
+%% Second algorithm
+
+a0 = ones(np,1);
+gamma = 1;
+
+for i=1:N
+	npa(i) = length(ind{i});
+	nna(i) = ((npa(i)*npa(i) - npa(i))/2) + npa(i);
+end
+nnas = sum(nna);
+Lambda0 = zeros(nnas,1);
+lambda0 = zeros(np,1);
+
+y0 = [posout; Lambda0; lambda0; a0];
+tspan = [0 1];
+k2 = 1;
+K = [N; k; np; sigma; gamma; k2];
+cx = zeros(N,1);
+cy = zeros(N,1);
+
+flag = 1;
+cntr_centre = 1;
+for i=1:N
+	c = ind{i}(cntr_centre);
+	cx(i) = xc(c);
+	cy(i) = yc(c);
+end
+e = 0.01;
+while(flag!=0)
+
+	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa),tspan,y0,options);
+	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
+	y0 = yout(end,:)';
+	f = 0;
+	for i=1:N
+		pi = y0(((i-1)*n)+1:i*n);
+		Kvec = Kvector(pi(1),pi(2),xc,yc,sigma);
+		chi = K\(Kvec(ind{i}));
+		tmp = 0;
+		for j=1:npa(i)
+			if((ind{i}(j))!=c)
+				tmp = tmp + chi(j);
+			end
+		end
+		if((chi(c)-tmp) > e)
+			if(cntr_centre(i)<length(ind{i}))
+				cntr_centre(i) = cntr_centre(i) + 1;
+				c = ind{i}(cntr_centre(i));
+				cx(i) = xc(c);
+				cy(i) = yc(c);
+			else
+				f = f + 1;
+			end
+		end
+
+		if(f==N)
+			flag = 0;
+		end
+	end
+
+	tspan = [tspan(2) tspan(2)+1];
+end
