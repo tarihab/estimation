@@ -1,6 +1,6 @@
 % double integrator dynamics with the adaptive coverage controller
 
-function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly)
+function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 
 	t  % print the current time
 	dydt = zeros(size(y));
@@ -68,7 +68,7 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly)
 
 		s = n*na;
 		Lambdadot = zeros(np,np);
-		K = Kfcn(p(:,i),np);
+		K = Kvector(p(1,i),p(2,i),xc,yc,sigma);
 		Lambdadot = -beta.*Lambda{i} + K*K';
 		Lambdadotvec = mattovecmod(Lambdadot);
 		dydt(s+((i-1)*nn)+1:s+(i*nn)) = Lambdadotvec;

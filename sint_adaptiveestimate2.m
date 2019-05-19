@@ -1,6 +1,6 @@
 % double integrator dynamics with the adaptive coverage controller
 
-function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa)
+function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa,ind,xc,yc,sigma)
 
 	t  % print the current time
 	dydt = zeros(size(y));
@@ -21,21 +21,31 @@ function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa)
 
 	for i=1:na
 		nna(i) = ((npa(i)*npa(i) - npa(i))/2) + npa(i);
+		ahat{i} = zeros(npa(i),1);
+		lambda{i} = zeros(npa(i),1);
+		bi{i} = zeros(npa(i),1);
+		ahatdot{i} = zeros(npa(i),1);
 	end
 
 	for i=1:na
 		p(:,i) = y(((i-1)*n)+1:i*n);
 
 		s = n*na;
-		Lambda{i} = zeros(np,np);
-		Lambdavec = y(s+((i-1)*nn)+1:s+(i*nn));
-		Lambda{i} = vec2sm(Lambdavec,np);
+		Lambda{i} = zeros(npa(i),npa(i));
+		j1 = sum(nna(1:(i-1)));
+		j2 = sum(nna(1:i));
+		Lambdavec = y(s+j1+1:s+j2);
+		Lambda{i} = vec2sm(Lambdavec,npa(i));
 
-		s = s + nn*na;
-		lambda(:,i) = y(s+((i-1)*np)+1:s+(i*np));
+		s = s + sum(nna);
+		j1 = sum(npa(1:(i-1)));
+		j2 = sum(npa(1:i));
+		lambda{i} = y(s+j1+1:s+j2);
 
-		s = s + np*na;
-		ahat(:,i) = y(s+((i-1)*np)+1:s+(i*np));
+		s = s + sum(npa);
+		j1 = sum(npa(1:(i-1)));
+		j2 = sum(npa(1:i));
+		ahat{i} = y(s+j1+1:s+j2);
 	end
 
 	% sensory density function measurements of the agents
@@ -53,14 +63,14 @@ function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa)
 		u(:,i) = -k1*(p(:,i)-gl);
 	end
 
-	bi = zeros(np,na);
-	ahatdot = zeros(np,na);
+	%bi = zeros(np,na);
+	%ahatdot = zeros(np,na);
 	for i=1:na
-		bi(:,i) = - g1.*(Lambda{i}*ahat(:,i) - lambda(:,i));	
-		ahatdot(:,i) = bi(:,i);
+		bi{i} = - g1.*(Lambda{i}*ahat{i} - lambda{i});	
+		ahatdot{i} = bi{i};
 		for j=1:na
 			if(i!=j)
-				ahatdot(:,i) = ahatdot(:,i) - k2*(ahat(:,i)-ahat(:,j));
+				ahatdot{i} = ahatdot{i} - k2*(ahat{i}-ahat{i});
 			end
 		end
 	end
@@ -70,18 +80,25 @@ function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa)
 		dydt(((i-1)*n)+1:i*n) = u(:,i);
 
 		s = n*na;
-		Lambdadot = zeros(np,np);
-		K = Kfcn(p(:,i),np);
+		Lambdadot = zeros(npa(i),npa(i));
+		K = Kvector(p(1,i),p(2,i),xc,yc,sigma);
+		K = K(ind{i});
 		Lambdadot = -beta.*Lambda{i} + K*K';
 		Lambdadotvec = mattovecmod(Lambdadot);
-		dydt(s+((i-1)*nn)+1:s+(i*nn)) = Lambdadotvec;
+		j1 = sum(nna(1:(i-1)));
+		j2 = sum(nna(1:i));
+		dydt(s+j1+1:s+j2) = Lambdadotvec;
 
-		s = s + nn*na;
+		s = s + sum(nna);
 		lambdadot = -beta.*lambda(:,i) + K.*phim(i);
-		dydt(s+((i-1)*np)+1:s+(i*np)) = lambdadot;
+		j1 = sum(npa(1:(i-1)));
+		j2 = sum(npa(1:i));
+		dydt(s+j1+1:s+j2) = lambdadot;
 
-		s = s + np*na;
-		dydt(s+((i-1)*np)+1:s+(i*np)) = ahatdot(:,i);
+		s = s + sum(npa);
+		j1 = sum(npa(1:(i-1)));
+		j2 = sum(npa(1:i));
+		dydt(s+j1+1:s+j2) = ahatdot(:,i);
 	end
 
 end

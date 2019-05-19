@@ -96,7 +96,7 @@ end
 e = 0.01;
 while(flag!=0)
 
-	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate1(t,y,K,cx,cy),tspan,y0,options);
+	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate1(t,y,K,cx,cy,xc,yc,sigma),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
 	y0 = yout(end,:)';
 	f = 0;
@@ -158,7 +158,7 @@ end
 e = 0.01;
 while(flag!=0)
 
-	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa),tspan,y0,options);
+	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa,ind,xc,yc,sigma),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
 	y0 = yout(end,:)';
 	f = 0;
