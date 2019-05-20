@@ -39,28 +39,24 @@ K = [N; k];
 [tout, yout] = ode45(@(t,y) sint_uniformspread(t,y,K,xborder,yborder),tspan,y0,options);
 
 posout = yout(end,:)';
+%}
+posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709; 0.5200; 0.5571];
 pos = zeros(2,N);
 for i=1:N
 	pos(:,i) = posout(((i-1)*2)+1:i*2);
 end
-%}
-pos(:,1) = [0.6979; 0.1904];
-pos(:,2) = [0.7717; 0.8539];
-pos(:,3) = [0.2114; 0.2847];
-pos(:,4) = [0.2670; 0.7709];
-pos(:,5) = [0.5200; 0.5571];
 disp('Starting positions');
 disp(pos);
 
 %% Start estimation
 
-disp('Partitions');
+%disp('Partitions');
 for i=1:N		
 	[vx,vy] = compute_voronoi(i,xborder,yborder,pos(1,:)',pos(2,:)');
 	partitionx{i} = vx;
 	partitiony{i} = vy;
-	disp(partitionx{i});
-	disp(partitiony{i});
+	%disp(partitionx{i});
+	%disp(partitiony{i});
 
 	% locate which of the centres are in partition i
 	ind{i} = [];
