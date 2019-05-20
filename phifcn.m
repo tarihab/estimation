@@ -1,6 +1,6 @@
 % computes the value of the density function at point q and parameter a
 
-function phi = phifcn(qx,qy)
+function phi = phifcn(qx,qy,a,b,c)
 % parameter b contains the no.of parameters
 
 	[nr,nc] = size(qx);

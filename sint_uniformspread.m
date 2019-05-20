@@ -1,6 +1,6 @@
 % double integrator dynamics with the adaptive coverage controller
 
-function [dydt] = sint_uniformspread(t,y,K)
+function [dydt] = sint_uniformspread(t,y,K,xborder,yborder)
 
 	t  % print the current time
 	dydt = zeros(size(y));
@@ -9,12 +9,12 @@ function [dydt] = sint_uniformspread(t,y,K)
 	%k2 = K(2);
 	%b = K(3);
 
-	k = K(2); % no. of agents
+	k = K(2); % controller gain
+	n = 2;  % ambient dimension
 
 	% actual state of the agents
 	p = zeros(n,na);
 
-	n = 2;  % ambient dimension
 	for i=1:na
 		p(:,i) = y(((i-1)*n)+1:i*n);
 	end
@@ -99,7 +99,7 @@ function [dydt] = sint_uniformspread(t,y,K)
 	for i=1:na
 		%u(:,i) = B{i}\(-k1*Mvi(i)*S{i}(1:2,:)'*(p(:,i)-Cvi(:,i)) - k2*v(:,i));
 		%Bu(:,i) = -k1*Mvi(i)*S{i}(1:2,:)'*(p(:,i)-Cvi(:,i)) - k2*v(:,i);
-		u(:,i) = -k1*Mvi(i)*(p(:,i)-Cvi(:,i));
+		u(:,i) = -k*Mvi(i)*(p(:,i)-Cvi(:,i));
 	end
 
 	% derivative updates

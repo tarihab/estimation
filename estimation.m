@@ -33,6 +33,7 @@ RelTol = 1e-4;
 AbsTol = 1e-4;
 options = odeset('RelTol',RelTol,'AbsTol',AbsTol);
 
+%{
 K = [N; k];
 
 [tout, yout] = ode45(@(t,y) sint_uniformspread(t,y,K,xborder,yborder),tspan,y0,options);
@@ -42,15 +43,24 @@ pos = zeros(2,N);
 for i=1:N
 	pos(:,i) = posout(((i-1)*2)+1:i*2);
 end
+%}
+pos(:,1) = [0.6979; 0.1904];
+pos(:,2) = [0.7717; 0.8539];
+pos(:,3) = [0.2114; 0.2847];
+pos(:,4) = [0.2670; 0.7709];
+pos(:,5) = [0.5200; 0.5571];
 disp('Starting positions');
 disp(pos);
 
 %% Start estimation
 
+disp('Partitions');
 for i=1:N		
 	[vx,vy] = compute_voronoi(i,xborder,yborder,pos(1,:)',pos(2,:)');
 	partitionx{i} = vx;
 	partitiony{i} = vy;
+	disp(partitionx{i});
+	disp(partitiony{i});
 
 	% locate which of the centres are in partition i
 	ind{i} = [];
@@ -60,6 +70,8 @@ for i=1:N
 		end
 	end
 end
+
+pause;
 
 %% First algorithm
 
@@ -93,8 +105,8 @@ for i=1:N
 	cx(i) = xc(c);
 	cy(i) = yc(c);
 end
-e = 0.01;
-while(flag!=0)
+e = 0.1;
+while(flag~=0)
 
 	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate1(t,y,K,cx,cy,xc,yc,sigma),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
@@ -105,7 +117,7 @@ while(flag!=0)
 		chi = K\(Kvector(pi(1),pi(2),xc,yc,sigma));
 		tmp = 0;
 		for j=1:np
-			if(j!=c)
+			if(j~=c)
 				tmp = tmp + chi(j);
 			end
 		end
@@ -128,6 +140,7 @@ while(flag!=0)
 	tspan = [tspan(2) tspan(2)+1];
 end
 
+%{
 %% Second algorithm
 
 a0 = ones(np,1);
@@ -155,8 +168,8 @@ for i=1:N
 	cx(i) = xc(c);
 	cy(i) = yc(c);
 end
-e = 0.01;
-while(flag!=0)
+e = 0.1;
+while(flag~=0)
 
 	[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa,ind,xc,yc,sigma),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
@@ -168,7 +181,7 @@ while(flag!=0)
 		chi = K\(Kvec(ind{i}));
 		tmp = 0;
 		for j=1:npa(i)
-			if((ind{i}(j))!=c)
+			if((ind{i}(j))~=c)
 				tmp = tmp + chi(j);
 			end
 		end
@@ -190,3 +203,4 @@ while(flag!=0)
 
 	tspan = [tspan(2) tspan(2)+1];
 end
+%}
