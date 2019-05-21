@@ -53,15 +53,16 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 	bi = zeros(np,na);
 	ahatdot = zeros(np,na);
 	for i=1:na
-		bi(:,i) = - g1.*(Lambda{i}*ahat(:,i) - lambda(:,i));	
+		bi(:,i) = - gamma.*(Lambda{i}*ahat(:,i) - lambda(:,i));	
 		ahatdot(:,i) = bi(:,i);
 		for j=1:na
-			if(i!=j)
+			if(i~=j)
 				ahatdot(:,i) = ahatdot(:,i) - k2*(ahat(:,i)-ahat(:,j));
 			end
 		end
 	end
 
+	beta1 = 1;
 	% derivative updates
 	for i=1:na
 		dydt(((i-1)*n)+1:i*n) = u(:,i);
@@ -69,12 +70,12 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 		s = n*na;
 		Lambdadot = zeros(np,np);
 		K = Kvector(p(1,i),p(2,i),xc,yc,sigma);
-		Lambdadot = -beta.*Lambda{i} + K*K';
+		Lambdadot = -beta1.*Lambda{i} + K*K';
 		Lambdadotvec = mattovecmod(Lambdadot);
 		dydt(s+((i-1)*nn)+1:s+(i*nn)) = Lambdadotvec;
 
 		s = s + nn*na;
-		lambdadot = -beta.*lambda(:,i) + K.*phim(i);
+		lambdadot = -beta1.*lambda(:,i) + K.*phim(i);
 		dydt(s+((i-1)*np)+1:s+(i*np)) = lambdadot;
 
 		s = s + np*na;

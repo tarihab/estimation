@@ -5,6 +5,7 @@ xborder = [0 1 1 0];
 yborder = [0 0 1 1];
 
 N = 5; % no.of agents
+n = 2; % ambient dimension = 2
 
 xcb = 0.05:0.1:1;  
 ycb = 0.05:0.1:1;  
@@ -23,7 +24,7 @@ sigma = 0.03;  % std. deviation of RBFs
 
 np = length(xc);  % no.of parameters
 
-k = 1; % controller gain
+k = 2; % controller gain
 
 p0 = rand(2*N,1);  % initial positions at random
 
@@ -60,12 +61,14 @@ for i=1:N
 
 	% locate which of the centres are in partition i
 	ind{i} = [];
-	for j=length(xc)
-		if(inpolygon(xc(j),yc(j),vx,vy))
+	for j=1:length(xc)
+		if(inpolygon(xc(j),yc(j),[vx vx(1)],[vy vy(1)]))
 			ind{i} = [ind{i} j];
 		end
 	end
 end
+
+disp(ind);
 
 pause;
 
@@ -83,23 +86,23 @@ tspan = [0 1];
 k2 = 1;
 K = [N; k; np; sigma; gamma; k2];
 
-K = zeros(np,np);
+Km = zeros(np,np);
 for i=1:np
 	for j=1:i
-		K(i,j) = Kvalue(xc(i),yc(i),xc(j),yc(j),sigma);
-		K(j,i) = K(i,j);
+		Km(i,j) = Kvalue(xc(i),yc(i),xc(j),yc(j),sigma);
+		Km(j,i) = Km(i,j);
 	end
 end
 
 flag = 1;
 cntr_centre = ones(N,1);
-c = 0
+c = zeros(N,1);
 cx = zeros(N,1);
 cy = zeros(N,1);
 for i=1:N
-	c = ind{i}(cntr_centre(i));
-	cx(i) = xc(c);
-	cy(i) = yc(c);
+	c(i) = ind{i}(cntr_centre(i));
+	cx(i) = xc(c(i));
+	cy(i) = yc(c(i));
 end
 e = 0.1;
 while(flag~=0)
@@ -110,21 +113,27 @@ while(flag~=0)
 	f = 0;
 	for i=1:N
 		pi = y0(((i-1)*n)+1:i*n);
-		chi = K\(Kvector(pi(1),pi(2),xc,yc,sigma));
+		chi = Km\(Kvector(pi(1),pi(2),xc,yc,sigma));
 		tmp = 0;
 		for j=1:np
-			if(j~=c)
+			if(j~=c(i))
 				tmp = tmp + chi(j);
 			end
 		end
-		if((chi(c)-tmp) > e)
+		if((chi(c(i))-tmp) > e)
+			%disp(i);
+			%disp(c(i));
+			%pause;
 			if(cntr_centre(i)<length(ind{i}))
 				cntr_centre(i) = cntr_centre(i) + 1;
-				c = ind{i}(cntr_centre(i));
-				cx(i) = xc(c);
-				cy(i) = yc(c);
+				c(i) = ind{i}(cntr_centre(i));
+				cx(i) = xc(c(i));
+				cy(i) = yc(c(i));
 			else
 				f = f + 1;
+				%disp('caught');
+				%disp(f);
+				%pause;
 			end
 		end
 
@@ -133,8 +142,10 @@ while(flag~=0)
 		end
 	end
 
-	tspan = [tspan(2) tspan(2)+1];
+	tspan = [tspan(2) tspan(2)+0.5];
 end
+
+pause;
 
 %{
 %% Second algorithm
@@ -154,15 +165,17 @@ y0 = [posout; Lambda0; lambda0; a0];
 tspan = [0 1];
 k2 = 1;
 K = [N; k; np; sigma; gamma; k2];
+cntr_centre = ones(N,1);
+c = zeros(N,1);
 cx = zeros(N,1);
 cy = zeros(N,1);
 
 flag = 1;
 cntr_centre = 1;
 for i=1:N
-	c = ind{i}(cntr_centre);
-	cx(i) = xc(c);
-	cy(i) = yc(c);
+	c(i) = ind{i}(cntr_centre(i));
+	cx(i) = xc(c(i));
+	cy(i) = yc(c(i));
 end
 e = 0.1;
 while(flag~=0)
@@ -174,19 +187,19 @@ while(flag~=0)
 	for i=1:N
 		pi = y0(((i-1)*n)+1:i*n);
 		Kvec = Kvector(pi(1),pi(2),xc,yc,sigma);
-		chi = K\(Kvec(ind{i}));
+		chi = Km\(Kvec(ind{i}));
 		tmp = 0;
 		for j=1:npa(i)
-			if((ind{i}(j))~=c)
+			if((ind{i}(j))~=c(i))
 				tmp = tmp + chi(j);
 			end
 		end
-		if((chi(c)-tmp) > e)
+		if((chi(c(i))-tmp) > e)
 			if(cntr_centre(i)<length(ind{i}))
 				cntr_centre(i) = cntr_centre(i) + 1;
-				c = ind{i}(cntr_centre(i));
-				cx(i) = xc(c);
-				cy(i) = yc(c);
+				c(i) = ind{i}(cntr_centre(i));
+				cx(i) = xc(c(i));
+				cy(i) = yc(c(i));
 			else
 				f = f + 1;
 			end

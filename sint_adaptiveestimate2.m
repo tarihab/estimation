@@ -69,7 +69,7 @@ function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa,ind,xc,yc,sigma)
 		bi{i} = - g1.*(Lambda{i}*ahat{i} - lambda{i});	
 		ahatdot{i} = bi{i};
 		for j=1:na
-			if(i!=j)
+			if(i~=j)
 				ahatdot{i} = ahatdot{i} - k2*(ahat{i}-ahat{i});
 			end
 		end
