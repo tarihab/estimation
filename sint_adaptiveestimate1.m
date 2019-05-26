@@ -50,16 +50,24 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 		u(:,i) = -k1*(p(:,i)-gl);
 	end
 
+	g2 = 1;
 	bi = zeros(np,na);
 	ahatdot = zeros(np,na);
 	for i=1:na
 		bi(:,i) = - gamma.*(Lambda{i}*ahat(:,i) - lambda(:,i));	
-		ahatdot(:,i) = bi(:,i);
 		for j=1:na
 			if(i~=j)
-				ahatdot(:,i) = ahatdot(:,i) - k2*(ahat(:,i)-ahat(:,j));
+				bi(:,i) = bi(:,i) - k2*(ahat(:,i)-ahat(:,j));
 			end
 		end
+		P = zeros(np,np);
+		for j=1:np
+		 if((ahat(j,i)<0) | ((ahat(j,i)==0) & (bi(j,i)<0)))
+		  P(j,j) = 1;
+		 end
+		end
+		%ahatdot(:,i) = bi(:,i);
+		ahatdot(:,i) = g2*(bi(:,i)-P*bi(:,i)); % projection
 	end
 
 	beta1 = 1;
