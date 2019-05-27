@@ -186,6 +186,7 @@ cntr_centre = ones(N,1);
 c = zeros(N,1);
 cx = zeros(N,1);
 cy = zeros(N,1);
+sw = ones(N,1);  % filter switch
 
 flag = 1;
 for i=1:N
@@ -204,7 +205,7 @@ while(flag==1 || stop==0)
 	end
 
 
-	[tout{ctr}, yout{ctr}] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa,ind,xc,yc,sigma),tspan,y0,options);
+	[tout{ctr}, yout{ctr}] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa,ind,xc,yc,sigma,sw),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
 	y0 = yout{ctr}(end,:)';
 	f = 0;
@@ -226,6 +227,7 @@ while(flag==1 || stop==0)
 				cx(i) = xc(c(i));
 				cy(i) = yc(c(i));
 			else
+				sw(i) = 0;
 				f = f + 1;
 			end
 		end
