@@ -16,7 +16,23 @@
 
 [k,l] = size(X);
 Z4 = zeros(k,l);
-a = yout{end}(end,end-195:end)';
+
+% for first algorithm
+% a = yout{end}(end,end-195:end)';
+
+% for second algorithm
+ atmp = yout{end}(end,end-195:end)';
+ a = zeros(length(atmp),1);
+ s = 0;
+ for i=1:N
+	 for j=1:length(ind{i})
+		 idx = ind{i}(j);
+		 a(idx) = atmp(s+j);
+	 end
+	 s = s + length(ind{i});
+ end
+
+% compute and plot approximation
 for i=1:k
 	for j=1:l
 		Z4(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
