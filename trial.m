@@ -15,8 +15,9 @@
 % %Z3 = Z3.*(1/(sigma*sqrt(2*pi)));
 
 [k,l] = size(X);
-Z4 = zeros(k,l);
 
+%{
+Z4 = zeros(k,l);
 % for first algorithm
 % a = yout{end}(end,end-195:end)';
 
@@ -38,5 +39,17 @@ for i=1:k
 		Z4(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
 	end
 end
+%}
 
-mesh(X,Y,Z4);
+xc = [0.2,0.35,0.6,0.85,0.7,0.75,0.15,0.35];
+yc = [0.25,0.26,0.18,0.3,0.75,0.9,0.75,0.6];
+atrue = [2,1,1.5,1.8,1.2,1.6,2.5,1.1];
+sigma = 0.1;
+Z5 = zeros(k,l);
+for i=1:k
+	for j=1:l
+		Z5(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,atrue);
+	end
+end
+
+mesh(X,Y,Z5);
