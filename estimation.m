@@ -4,13 +4,13 @@
 xborder = [0 1 1 0];
 yborder = [0 0 1 1];
 
-N = 5; % no.of agents
+N = 4; % no.of agents
 n = 2; % ambient dimension = 2
 
-%xcb = 0.05:0.1:1;  
-%ycb = 0.05:0.1:1;  
-xcb = 0.04:0.07:1;  
-ycb = 0.04:0.07:1;  
+xcb = 0.05:0.1:1;  
+ycb = 0.05:0.1:1;  
+%xcb = 0.04:0.07:1;  
+%ycb = 0.04:0.07:1;  
 xc = [];  % x-coordinates of RBF centres
 yc = [];  % y-coordinates of RBF centres
 for i=1:length(ycb)
@@ -26,9 +26,18 @@ sigmalist = [0.03; 0.04; 0.05];
 % sigma = 0.05;  % std. deviation of RBFs
 sigma = sigmalist(h);  % std. deviation of RBFs
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% for exact parameterization case %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%xc = [0.2,0.35,0.6,0.85,0.7,0.75,0.15,0.35];
+%yc = [0.25,0.26,0.18,0.3,0.75,0.9,0.75,0.6];
+%atrue = [2,1,1.5,1.8,1.2,1.6,2.5,1.1];
+%sigma = 0.1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 np = length(xc);  % no.of parameters
 
-k = 2; % controller gain
+k = 5; % controller gain
 
 p0 = rand(2*N,1);  % initial positions at random
 
@@ -45,7 +54,8 @@ K = [N; k];
 
 posout = yout(end,:)';
 %}
-posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709; 0.5200; 0.5571];
+%posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709; 0.5200; 0.5571];
+posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709;];
 pos = zeros(2,N);
 for i=1:N
 	pos(:,i) = posout(((i-1)*2)+1:i*2);
@@ -85,9 +95,9 @@ for i=1:np
 end
 
 %% First algorithm
-%{
+%%{
 
-a0 = ones(N*np,1);
+a0 = 0.1.*ones(N*np,1);
 gamma = 300;
 
 nn = ((np*np - np)/2) + np;
@@ -115,7 +125,10 @@ ctr = 1;
 while(flag==1 || stop==0)
 
 	if(flag==0)
-		tspan = [tspan(1) tspan(1)+15];
+		tspan = [tspan(1) tspan(1)+20];
+		RelTol = 1e-3;
+		AbsTol = 1e-3;
+		options = odeset('RelTol',RelTol,'AbsTol',AbsTol);
 		stop = 1;
 	end
 
@@ -154,17 +167,17 @@ while(flag==1 || stop==0)
 		end
 	end
 
-	tspan = [tspan(2) tspan(2)+0.5];
+	tspan = [tspan(2) tspan(2)+0.2];
 
 	ctr = ctr+1;
 
 end
 
-%}
+%%}
 
 % save('results1_sigma0-05_np100.mat');
 
-%%{
+%{
 %% Second algorithm
 
 a0 = ones(np,1);
@@ -241,4 +254,4 @@ while(flag==1 || stop==0)
 
 	ctr = ctr+1;
 end
-%%}
+%}
