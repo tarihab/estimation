@@ -17,9 +17,9 @@
 [k,l] = size(X);
 
 
-Z4 = zeros(k,l);
+%Z4 = zeros(k,l);
 % for first algorithm
-a = yout{end}(end,end-99:end)';
+%a = yout{end}(end,end-99:end)';
 
 %{
 % for second algorithm
@@ -36,16 +36,20 @@ a = yout{end}(end,end-99:end)';
 %}
 
 % compute and plot approximation
-for i=1:k
-	for j=1:l
-		Z4(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
-	end
-end
-mesh(X,Y,Z4);
+%for i=1:k
+%	for j=1:l
+%		Z4(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
+%	end
+%end
+%mesh(X,Y,Z4);
 
 %xc = [0.2,0.35,0.6,0.85,0.7,0.75,0.15,0.35];
 %yc = [0.25,0.26,0.18,0.3,0.75,0.9,0.75,0.6];
 %atrue = [2,1,1.5,1.8,1.2,1.6,2.5,1.1];
+%sigma = 0.1;
+%xc = [0.1,0.2,0.35,0.4,0.6,0.7,0.78,0.85,0.7,0.6,0.75,0.85,0.15,0.2,0.32,0.35];
+%yc = [0.18,0.25,0.26,0.32,0.18,0.25,0.3,0.45,0.75,0.83,0.9,0.60,0.65,0.72,0.75,0.6];
+%atrue = [2,1,2.6,0.9,1.5,1.6,1.1,1.8,1.2,0.8,2.0,1.6,2.0,1.5,2.5,1.1];
 %sigma = 0.1;
 %Z5 = zeros(k,l);
 %a = yout{end}(end,end-7:end)';
@@ -65,6 +69,7 @@ mesh(X,Y,Z4);
 %parest{2} = [yout{1}(:,end-23:end-16); yout{2}(:,end-23:end-16); yout{3}(:,end-23:end-16)];
 %parest{1} = [yout{1}(:,end-31:end-24); yout{2}(:,end-31:end-24); yout{3}(:,end-31:end-24)];
 
+%%{
 ysize = length(yout);
 k1 = np-1;
 parest = cell(1,N);
@@ -80,3 +85,9 @@ end
 for i=1:ysize
 	tset = [tset; tout{i}];
 end
+avgperror = zeros(length(tset),np);
+for i=1:N
+	avgperror = avgperror + abs(parest{i} - atrue);
+end
+avgperror = avgperror./N;
+%%}
