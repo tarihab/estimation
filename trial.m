@@ -21,20 +21,6 @@
 % for first algorithm
 %a = yout{end}(end,end-99:end)';
 
-%{
-% for second algorithm
- atmp = yout{end}(end,end-195:end)';
- a = zeros(length(atmp),1);
- s = 0;
- for i=1:N
-	 for j=1:length(ind{i})
-		 idx = ind{i}(j);
-		 a(idx) = atmp(s+j);
-	 end
-	 s = s + length(ind{i});
- end
-%}
-
 % compute and plot approximation
 %for i=1:k
 %	for j=1:l
@@ -52,7 +38,7 @@
 %atrue = [2,1,2.6,0.9,1.5,1.6,1.1,1.8,1.2,0.8,2.0,1.6,2.0,1.5,2.5,1.1];
 %sigma = 0.1;
 %Z5 = zeros(k,l);
-%a = yout{end}(end,end-7:end)';
+%a = yout{end}(end,end-15:end)';
 %for i=1:k
 %	for j=1:l
 %		Z5(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,atrue);
@@ -69,7 +55,8 @@
 %parest{2} = [yout{1}(:,end-23:end-16); yout{2}(:,end-23:end-16); yout{3}(:,end-23:end-16)];
 %parest{1} = [yout{1}(:,end-31:end-24); yout{2}(:,end-31:end-24); yout{3}(:,end-31:end-24)];
 
-%%{
+%{
+% Algo 1
 ysize = length(yout);
 k1 = np-1;
 parest = cell(1,N);
@@ -90,4 +77,85 @@ for i=1:N
 	avgperror = avgperror + abs(parest{i} - atrue);
 end
 avgperror = avgperror./N;
-%%}
+%}
+
+%{
+% Algo 2
+ atmp = yout{end}(end,end-15:end)';
+ a = zeros(length(atmp),1);
+ s = 0;
+ for i=1:N
+	 for j=1:length(ind{i})
+		 idx = ind{i}(j);
+		 a(idx) = atmp(s+j);
+	 end
+	 s = s + length(ind{i});
+ end
+%}
+
+% %{
+% Algo 2
+ysize = length(yout);
+parest = [];
+tset = [];
+k1 = np-1;
+%k2 = (i-1)*np;
+for j=1:ysize
+	par_tmp = yout{j}(:,end-k1:end);
+	[m_tmp,n_tmp] = size(par_tmp);
+	par_tmp2 = zeros(m_tmp,n_tmp);
+	s = 0;
+	for i=1:N
+		for k=1:length(ind{i})
+			idx = ind{i}(k);
+			par_tmp2(:,idx) = par_tmp(:,s+k);
+		end
+		s = s + length(ind{i});
+	end
+	parest = [parest; par_tmp2];
+end
+for i=1:ysize
+	tset = [tset; tout{i}];
+end
+perror = zeros(length(tset),np);
+for i=1:N
+	perror = abs(parest - atrue);
+end
+% %}
+
+%{
+% Algo 2 modified
+ysize = length(yout);
+parest = [];
+tset = [];
+k1 = np-1;
+%k2 = (i-1)*np;
+for j=1:ysize
+	par_tmp = [];
+	for i=1:N
+		k1 = (i*np) - 1;
+		k2 = (i-1)*np;
+		k3 = sum(npa(1:i-1));
+		k4 = sum(npa(1:i));
+		par_tmp = [par_tmp, yout{j}(:,end-k1+k3:end-k1+k4-1)];
+	end
+	[m_tmp,n_tmp] = size(par_tmp);
+	par_tmp2 = zeros(m_tmp,n_tmp);
+	s = 0;
+	for i=1:N
+		for k=1:length(ind{i})
+			idx = ind{i}(k);
+			par_tmp2(:,idx) = par_tmp(:,s+k);
+		end
+		s = s + length(ind{i});
+	end
+	parest = [parest; par_tmp2];
+end
+for i=1:ysize
+	tset = [tset; tout{i}];
+end
+perror = zeros(length(tset),np);
+for i=1:N
+	perror = abs(parest - atrue);
+end
+%}

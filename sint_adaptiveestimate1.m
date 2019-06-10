@@ -35,6 +35,16 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 		ahat(:,i) = y(s+((i-1)*np)+1:s+(i*np));
 	end
 
+	%Lambdasum = zeros(np,np);
+	%if(t>4)
+	%	for i=1:na
+	%		Lambdasum = Lambdasum + Lambda{i};
+	%	end
+	%	disp('Condition number');
+	%	disp(cond(Lambdasum));
+	%	pause;
+	%end
+
 	% sensory density function measurements of the agents
 	phim = zeros(1,na);
 	for i=1:na
@@ -78,12 +88,14 @@ function [dydt] = sint_adaptiveestimate1(t,y,K,glx,gly,xc,yc,sigma)
 		s = n*na;
 		Lambdadot = zeros(np,np);
 		K = Kvector(p(1,i),p(2,i),xc,yc,sigma);
-		Lambdadot = -beta1.*Lambda{i} + K*K';
+		Lambdadot = K*K';
+		%Lambdadot = norm(u(:,i))*K*K';
 		Lambdadotvec = mattovecmod(Lambdadot);
 		dydt(s+((i-1)*nn)+1:s+(i*nn)) = Lambdadotvec;
 
 		s = s + nn*na;
-		lambdadot = -beta1.*lambda(:,i) + K.*phim(i);
+		lambdadot = K.*phim(i);
+		%lambdadot = norm(u(:,i))*K.*phim(i);
 		dydt(s+((i-1)*np)+1:s+(i*np)) = lambdadot;
 
 		s = s + np*na;

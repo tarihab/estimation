@@ -93,14 +93,14 @@ function [dydt] = sint_adaptiveestimate2(t,y,K,glx,gly,npa,ind,xc,yc,sigma,sw)
 		Lambdadot = zeros(npa(i),npa(i));
 		Kt = Kvector(p(1,i),p(2,i),xc,yc,sigma);
 		K = Kt(ind{i});
-		Lambdadot = sw(i).*(-beta1.*Lambda{i} + K*K');
+		Lambdadot = sw(i).*(K*K');
 		Lambdadotvec = mattovecmod(Lambdadot);
 		j1 = sum(nna(1:(i-1)));
 		j2 = sum(nna(1:i));
 		dydt(s+j1+1:s+j2) = Lambdadotvec;
 
 		s = s + sum(nna);
-		lambdadot = sw(i).*(-beta1.*lambda{i} + K.*phim(i));
+		lambdadot = sw(i).*(K.*phim(i));
 		j1 = sum(npa(1:(i-1)));
 		j2 = sum(npa(1:i));
 		dydt(s+j1+1:s+j2) = lambdadot;

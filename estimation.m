@@ -103,7 +103,7 @@ for i=1:np
 end
 
 %% First algorithm
-% %{
+%{
 
 disp('First Algorithm');
 pause;
@@ -152,12 +152,13 @@ while(flag==1 || stop==0)
 		tmp = 0;
 		for j=1:np
 			if(j~=c(i))
-				tmp = tmp + chi(j);
+				tmp = tmp + abs(chi(j));
 			end
 		end
-		if((chi(c(i))-tmp) > e)
+		if((abs(chi(c(i)))-tmp) > e)
 			%disp(i);
 			%disp(c(i));
+			%pi
 			%pause;
 			if(cntr_centre(i)<length(ind{i}))
 				cntr_centre(i) = cntr_centre(i) + 1;
@@ -183,17 +184,17 @@ while(flag==1 || stop==0)
 
 end
 
-% %}
+%}
 
 % save('results1_sigma0-05_np100.mat');
 
-%{
+% %{
 %% Second algorithm
 
 disp('Second Algorithm');
 pause;
 
-a0 = ones(np,1);
+a0 = 0.1*ones(np,1);
 gamma = 300;
 
 for i=1:N
@@ -226,10 +227,9 @@ ctr = 1;
 while(flag==1 || stop==0)
 
 	if(flag==0)
-		tspan = [tspan(1) tspan(1)+15];
+		tspan = [tspan(1) tspan(1)+20];
 		stop = 1;
 	end
-
 
 	[tout{ctr}, yout{ctr}] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,cx,cy,npa,ind,xc,yc,sigma,sw),tspan,y0,options);
 	%[tout, yout] = ode45(@(t,y) sint_adaptiveestimate2(t,y,K,xborder,yborder,xc,yc),tspan,y0,options);
@@ -243,10 +243,10 @@ while(flag==1 || stop==0)
 		tmp = 0;
 		for j=1:npa(i)
 			if((ind{i}(j))~=c(i))
-				tmp = tmp + chi(j);
+				tmp = tmp + abs(chi(j));
 			end
 		end
-		if((chi(cntr_centre(i))-tmp) > e)
+		if((abs(chi(cntr_centre(i)))-tmp) > e)
 			if(cntr_centre(i)<length(ind{i}))
 				cntr_centre(i) = cntr_centre(i) + 1;
 				c(i) = ind{i}(cntr_centre(i));
@@ -263,7 +263,88 @@ while(flag==1 || stop==0)
 		end
 	end
 
-	tspan = [tspan(2) tspan(2)+0.5];
+	tspan = [tspan(2) tspan(2)+0.2];
+
+	ctr = ctr+1;
+end
+% %}
+
+%{
+%% Modified second algorithm
+
+disp('Modified second Algorithm');
+pause;
+
+a0 = 0.1*ones(N*np,1);
+gamma = 300;
+
+for i=1:N
+	npa(i) = length(ind{i});
+	nna(i) = ((npa(i)*npa(i) - npa(i))/2) + npa(i);
+end
+nnas = sum(nna);
+Lambda0 = zeros(nnas,1);
+lambda0 = zeros(np,1);
+
+y0 = [posout; Lambda0; lambda0; a0];
+tspan = [0 1];
+k2 = 1;
+K = [N; k; np; sigma; gamma; k2];
+cntr_centre = ones(N,1);
+c = zeros(N,1);
+cx = zeros(N,1);
+cy = zeros(N,1);
+sw = ones(N,1);  % filter switch
+
+flag = 1;
+for i=1:N
+	c(i) = ind{i}(cntr_centre(i));
+	cx(i) = xc(c(i));
+	cy(i) = yc(c(i));
+end
+e = 0.1;
+stop = 0;
+ctr = 1;
+while(flag==1 || stop==0)
+
+	if(flag==0)
+		tspan = [tspan(1) tspan(1)+20];
+		stop = 1;
+	end
+
+
+	[tout{ctr}, yout{ctr}] = ode45(@(t,y) sint_adaptiveestimate2mod(t,y,K,cx,cy,npa,ind,xc,yc,sigma,sw),tspan,y0,options);
+	y0 = yout{ctr}(end,:)';
+	f = 0;
+	for i=1:N
+		pi = y0(((i-1)*n)+1:i*n);
+		Kvec = Kvector(pi(1),pi(2),xc,yc,sigma);
+		Kmt = Km(ind{i},ind{i});
+		chi = Kmt\(Kvec(ind{i}));
+		tmp = 0;
+		for j=1:npa(i)
+			if((ind{i}(j))~=c(i))
+				tmp = tmp + abs(chi(j));
+			end
+		end
+		if((abs(chi(cntr_centre(i)))-tmp) > e)
+			if(cntr_centre(i)<length(ind{i}))
+				cntr_centre(i) = cntr_centre(i) + 1;
+				c(i) = ind{i}(cntr_centre(i));
+				cx(i) = xc(c(i));
+				cy(i) = yc(c(i));
+			else
+				sw(i) = 0;
+				f = f + 1;
+			end
+		end
+
+		if(f==N)
+			flag = 0;
+		end
+	end
+
+	tspan = [tspan(2) tspan(2)+0.2];
 
 	ctr = ctr+1;
 end
