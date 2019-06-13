@@ -4,13 +4,17 @@
 xborder = [0 1 1 0];
 yborder = [0 0 1 1];
 
-N = 4; % no.of agents
+N = 5; % no.of agents
 n = 2; % ambient dimension = 2
 
-xcb = 0.05:0.1:1;  
-ycb = 0.05:0.1:1;  
-%xcb = 0.04:0.07:1;  
-%ycb = 0.04:0.07:1;  
+if(np_case==1)  % corresponds to 100 parameters
+	xcb = 0.05:0.1:1;  
+	ycb = 0.05:0.1:1;  
+end
+if(np_case==2)  % corresponds to 196 parameters
+	xcb = 0.04:0.07:1;  
+	ycb = 0.04:0.07:1;  
+end
 xc = [];  % x-coordinates of RBF centres
 yc = [];  % y-coordinates of RBF centres
 for i=1:length(ycb)
@@ -26,7 +30,7 @@ sigmalist = [0.03; 0.04; 0.05];
 % sigma = 0.05;  % std. deviation of RBFs
 sigma = sigmalist(h);  % std. deviation of RBFs
 
-algo = 3;
+% algo = 1;
 % algorithm to be run; 
 % algo = 1 -> algorithm 1 - full parameter estimation by each agent
 % algo = 2 -> algorithm 2 - part parameter estimation by each agent
@@ -35,10 +39,10 @@ algo = 3;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% for exact parameterization case %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-xc = [0.2,0.35,0.6,0.85,0.7,0.75,0.15,0.35];
-yc = [0.25,0.26,0.18,0.3,0.75,0.9,0.75,0.6];
-atrue = [2,1,1.5,1.8,1.2,1.6,2.5,1.1];
-sigma = 0.1;
+%xc = [0.2,0.35,0.6,0.85,0.7,0.75,0.15,0.35];
+%yc = [0.25,0.26,0.18,0.3,0.75,0.9,0.75,0.6];
+%atrue = [2,1,1.5,1.8,1.2,1.6,2.5,1.1];
+%sigma = 0.1;
 %xc = [0.1,0.2,0.35,0.4,0.6,0.7,0.78,0.85,0.7,0.6,0.75,0.85,0.15,0.2,0.32,0.35];
 %yc = [0.18,0.25,0.26,0.32,0.18,0.25,0.3,0.45,0.75,0.83,0.9,0.60,0.65,0.72,0.75,0.6];
 %atrue = [2,1,2.6,0.9,1.5,1.6,1.1,1.8,1.2,0.8,2.0,1.6,2.0,1.5,2.5,1.1];
@@ -49,14 +53,14 @@ sigma = 0.1;
 %sigma = 0.1;
 
 % unknown centre case
-pert = 0.0354; % corresponding to epsilon = 0.05
+%pert = 0.0354; % corresponding to epsilon = 0.05 -> the one used
 %pert = 0.0707; % corresponding to epsilon = 0.1
-xpert = pert*rand(1,length(xc));
-ypert = pert*rand(1,length(yc));
-xctrue = xc;
-yctrue = yc;
-xc = xc + xpert;
-yc = yc + ypert;
+%xpert = pert*rand(1,length(xc));
+%ypert = pert*rand(1,length(yc));
+%xctrue = xc;
+%yctrue = yc;
+%xc = xc + xpert;
+%yc = yc + ypert;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 np = length(xc);  % no.of parameters
@@ -79,7 +83,8 @@ options = odeset('RelTol',RelTol,'AbsTol',AbsTol);
 %posout = yout(end,:)';
 %
 %posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709; 0.5200; 0.5571];
-posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709;];
+posout = [0.6979; 0.1904; 0.75; 0.75; 0.20; 0.24; 0.25; 0.80; 0.50; 0.5071];
+%posout = [0.6979; 0.1904; 0.7717; 0.8539; 0.2114; 0.2847; 0.2670; 0.7709;];
 pos = zeros(2,N);
 for i=1:N
 	pos(:,i) = posout(((i-1)*2)+1:i*2);
@@ -122,7 +127,7 @@ end
 if(algo==1)
 
 	disp('First Algorithm');
-	pause;
+	%pause;
 
 	a0 = 0.1.*ones(N*np,1);
 	gamma = 300;
@@ -132,7 +137,8 @@ if(algo==1)
 	lambda0 = zeros(N*np,1);
 
 	y0 = [posout; Lambda0; lambda0; a0];
-	tspan = [0 1];
+	%tspan = [0 1];
+	tspan = 0:0.1:1;
 	k2 = 1;
 	K = [N; k; np; sigma; gamma; k2];
 
@@ -152,7 +158,8 @@ if(algo==1)
 	while(flag==1 || stop==0)
 	
 		if(flag==0)
-			tspan = [tspan(1) tspan(1)+20];
+			%tspan = [tspan(1) tspan(1)+20];
+			tspan = tspan(1):0.1:tspan(1)+20;
 			RelTol = 1e-4;
 			AbsTol = 1e-4;
 			options = odeset('RelTol',RelTol,'AbsTol',AbsTol);
@@ -194,7 +201,8 @@ if(algo==1)
 			end
 		end
 	
-		tspan = [tspan(2) tspan(2)+0.2];
+		%tspan = [tspan(2) tspan(2)+0.2];
+		tspan = tspan(2):0.1:tspan(2)+0.2;
 	
 		ctr = ctr+1;
 	
@@ -208,7 +216,7 @@ end
 if(algo==2)
 
 	disp('Second Algorithm');
-	pause;
+	%pause;
 	
 	a0 = 0.1*ones(np,1);
 	gamma = 300;
@@ -222,7 +230,8 @@ if(algo==2)
 	lambda0 = zeros(np,1);
 	
 	y0 = [posout; Lambda0; lambda0; a0];
-	tspan = [0 1];
+	%tspan = [0 1];
+	tspan = 0:0.1:1;
 	k2 = 1;
 	K = [N; k; np; sigma; gamma; k2];
 	cntr_centre = ones(N,1);
@@ -243,7 +252,8 @@ if(algo==2)
 	while(flag==1 || stop==0)
 	
 		if(flag==0)
-			tspan = [tspan(1) tspan(1)+20];
+			%tspan = [tspan(1) tspan(1)+20];
+			tspan = tspan(1):0.1:tspan(1)+20;
 			stop = 1;
 		end
 	
@@ -279,7 +289,8 @@ if(algo==2)
 			end
 		end
 	
-		tspan = [tspan(2) tspan(2)+0.2];
+		%tspan = [tspan(2) tspan(2)+0.2];
+		tspan = tspan(2):0.1:tspan(2)+0.2;
 	
 		ctr = ctr+1;
 	end
@@ -289,7 +300,7 @@ end
 if(algo==3)
 
 	disp('Modified second Algorithm');
-	pause;
+	%pause;
 	
 	a0 = 0.1*ones(N*np,1);
 	gamma = 300;
@@ -303,7 +314,8 @@ if(algo==3)
 	lambda0 = zeros(np,1);
 	
 	y0 = [posout; Lambda0; lambda0; a0];
-	tspan = [0 1];
+	%tspan = [0 1];
+	tspan = 0:0.1:1;
 	k2 = 1;
 	K = [N; k; np; sigma; gamma; k2];
 	cntr_centre = ones(N,1);
@@ -324,7 +336,8 @@ if(algo==3)
 	while(flag==1 || stop==0)
 	
 		if(flag==0)
-			tspan = [tspan(1) tspan(1)+20];
+			%tspan = [tspan(1) tspan(1)+20];
+			tspan = tspan(1):0.1:tspan(1)+20;
 			stop = 1;
 		end
 	
@@ -360,7 +373,8 @@ if(algo==3)
 			end
 		end
 	
-		tspan = [tspan(2) tspan(2)+0.2];
+		%tspan = [tspan(2) tspan(2)+0.2];
+		tspan = tspan(2):0.1:tspan(2)+0.2;
 	
 		ctr = ctr+1;
 	end

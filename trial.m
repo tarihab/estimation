@@ -13,9 +13,14 @@
 %sigma = 0.03;
 %Z3 = exp((-(X).^2 - (Y).^2)/(2*sigma*sigma));
 % %Z3 = Z3.*(1/(sigma*sqrt(2*pi)));
+%Z2 =  3*(X).^2.*exp((-(X-0.5).^2 - (Y-0.5).^2)/0.05) ...
+%   + 1.*exp((-(X-0.3).^2-(Y-0.3).^2)/0.06) ...
+%   + 1/3*exp((-(X-0.15).^2 - (Y-0.15).^2)/0.08);
+%figure;
+%mesh(X,Y,Z2);
+%pause
 
-[k,l] = size(X);
-
+%[k,l] = size(X);
 
 %Z4 = zeros(k,l);
 % for first algorithm
@@ -37,21 +42,6 @@
 %yc = [0.18,0.25,0.26,0.32,0.18,0.25,0.3,0.45,0.75,0.83,0.9,0.60,0.65,0.72,0.75,0.6];
 %atrue = [2,1,2.6,0.9,1.5,1.6,1.1,1.8,1.2,0.8,2.0,1.6,2.0,1.5,2.5,1.1];
 %sigma = 0.1;
-%Z5 = zeros(k,l);
-Z6 = zeros(k,l);
-%a = yout{end}(end,end-15:end)';
-a = parest(end,:)';
-%a = parest{end}(end,:)';
-for i=1:k
-	for j=1:l
-%		Z5(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,atrue);
-		Z6(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
-	end
-end
-%
-%mesh(X,Y,Z5);
-figure;
-mesh(X,Y,Z6);
 
 %parest{4} = [yout{1}(:,end-99:end); yout{2}(:,end-99:end); yout{3}(:,end-99:end)];
 %parest{3} = [yout{1}(:,end-15:end-8); yout{2}(:,end-15:end-8); yout{3}(:,end-15:end-8)];
@@ -75,11 +65,11 @@ if(algo==1)
 	for i=1:ysize
 		tset = [tset; tout{i}];
 	end
-	avgperror = zeros(length(tset),np);
-	for i=1:N
-		avgperror = avgperror + abs(parest{i} - atrue);
-	end
-	avgperror = avgperror./N;
+	%avgperror = zeros(length(tset),np);
+	%for i=1:N
+		%avgperror = avgperror + abs(parest{i} - atrue);
+	%end
+	%avgperror = avgperror./N;
 end
 
 % Algo 2
@@ -120,10 +110,10 @@ if(algo==2)
 	for i=1:ysize
 		tset = [tset; tout{i}];
 	end
-	perror = zeros(length(tset),np);
-	for i=1:N
-		perror = abs(parest - atrue);
-	end
+	%perror = zeros(length(tset),np);
+	%for i=1:N
+		%perror = abs(parest - atrue);
+	%end
 end
 
 % Algo 2 modified
@@ -157,8 +147,36 @@ if(algo==3)
 	for i=1:ysize
 		tset = [tset; tout{i}];
 	end
-	perror = zeros(length(tset),np);
-	for i=1:N
-		perror = abs(parest - atrue);
+	%perror = zeros(length(tset),np);
+	%for i=1:N
+	%	perror = abs(parest - atrue);
+	%end
+end
+
+%Z5 = zeros(k,l);
+%a = yout{end}(end,end-15:end)';
+if(algo==2)
+	a = parest(end,:)';
+end
+if(algo==3)
+	a = parest(end,:)';
+end
+if(algo==1)
+	a = parest{end}(end,:)';
+end
+[k,l] = size(X);
+Z6 = zeros(k,l);
+for i=1:k
+	for j=1:l
+		%Z5(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,atrue);
+		Z6(i,j) = fieldestimate(X(i,j),Y(i,j),xc,yc,sigma,a);
 	end
 end
+%
+save("case2_algo"+algo+"_np"+np+"_N"+N+"_sigma"+sigma+".mat");
+%figure;
+%mesh(X,Y,Z5);
+figure;
+mesh(X,Y,Z6);
+set(gca,'FontSize',12.0);
+saveas(gcf,"Figures/case2/"+"algo"+algo+"_reconstructed_np"+np+"_N"+N+"_sigma"+sigma+".fig");
