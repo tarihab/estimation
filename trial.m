@@ -173,10 +173,10 @@ for i=1:k
 	end
 end
 %
-save("case2_algo"+algo+"_np"+np+"_N"+N+"_sigma"+sigma+".mat");
+save(strcat('case2_algo',num2str(algo),'_np',num2str(np),'_N',num2str(N),'_sigma',num2str(sigma),'.mat'));
 %figure;
 %mesh(X,Y,Z5);
 figure;
 mesh(X,Y,Z6);
 set(gca,'FontSize',12.0);
-saveas(gcf,"Figures/case2/"+"algo"+algo+"_reconstructed_np"+np+"_N"+N+"_sigma"+sigma+".fig");
+saveas(gcf,strcat('Figures/case2/','algo',num2str(algo),'_reconstructed_np',num2str(np),'_N',num2str(N),'_sigma',num2str(sigma),'.fig'));
